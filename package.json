@@ -1,0 +1,44 @@
+{
+  "name": "chain-events",
+  "version": "1.0.0",
+  "description": "The controlled events callbacks for Node.js EventEmitter",
+  "main": "dist/index.js",
+  "types": "src/index.js",
+  "scripts": {
+    "build": "rm -rf dist && tsc && eslint src/**/*.ts{,x}",
+    "eslint": "eslint src/**/*.ts{,x}",
+    "test": "node test/index.js"
+  },
+  "devDependencies": {
+    "@types/node": "^9.4.6",
+    "@typescript-eslint/eslint-plugin": "^3.3.0",
+    "@typescript-eslint/parser": "^3.3.0",
+    "eslint": "^7.3.0",
+    "husky": "3.0.0",
+    "ts-jest": "^26.1.0",
+    "ts-node": "5.0.0",
+    "typescript": "^3.5.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Paul-Lazunko/chain-events.git"
+  },
+  "keywords": [
+    "EventEmitter",
+    "events",
+    "callbacks",
+    "middleware",
+    "chain"
+  ],
+  "author": "Pavlo Lazunko",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Paul-Lazunko/chain-events/issues"
+  },
+  "homepage": "https://github.com/Paul-Lazunko/chain-events#readme",
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run eslint"
+    }
+  }
+}
