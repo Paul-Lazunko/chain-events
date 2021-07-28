@@ -1,0 +1,1 @@
+export { ChainEventEmitter } from './ChainEventEmitter'
