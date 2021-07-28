@@ -1,0 +1,1 @@
+export { ChainEventEmitterError } from './ChainEventEmitterError';
