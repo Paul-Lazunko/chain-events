@@ -26,6 +26,7 @@
   "keywords": [
     "EventEmitter",
     "events",
+    "async",
     "callbacks",
     "middleware",
     "chain"
