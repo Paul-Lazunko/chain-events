@@ -2,7 +2,7 @@ import { EventEmitter } from 'events';
 
 import { ANY_EVENT, errors } from '../constants';
 import { makeGenerator } from '../helpers';
-import { ChainEventEmitterError } from '../errors';
+import {ChainEventEmitterError, ChainEventEmitterEventHandlerError, ChainEventEmitterEventNameError} from '../errors';
 import {
   ChainEventEmitterOptions,
   Logger,
@@ -97,13 +97,13 @@ export class ChainEventEmitter {
 
   protected checkEventName(event: string) {
     if ( typeof event !== 'string' || !event ) {
-      throw new ChainEventEmitterError(errors.invalidEventName())
+      throw new ChainEventEmitterEventNameError();
     }
   }
 
   protected checkEventHandler(handler: TChainEventErrorHandler|TChainEventHandler) {
     if ( typeof handler !== 'function') {
-      throw new ChainEventEmitterError(errors.invalidEventHandler())
+      throw new ChainEventEmitterEventHandlerError();
     }
   }
 
@@ -127,7 +127,7 @@ export class ChainEventEmitter {
           await eventErrorHandler(error, data, event)
         } catch(e) {
           if ( e instanceof ChainEventEmitterError ) {
-            self.logger.warn(e.message);
+            self.logger.error(e.message);
           } else {
             throw e;
           }
