@@ -4,3 +4,4 @@ require('./async-test');
 require('./sync-test');
 require('./off-test');
 require('./disable-enable-test');
+require('./on-error-test');
