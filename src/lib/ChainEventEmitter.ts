@@ -18,23 +18,21 @@ export class ChainEventEmitter {
   private eventHandlers: Map<string, TChainEventHandler[]>;
   private eventHandlerStatus: Map<string, boolean>;
   private eventErrorHandlers: Map<string, TChainEventErrorHandler>;
-  private eachEventHandlers: TChainEventHandler[];
+  private anyEventHandlers: TChainEventHandler[];
 
   constructor(options?: ChainEventEmitterOptions) {
-    if ( !options || typeof options !== 'object' ) {
-      const self = this;
-      options = {
-        eventEmitter: new EventEmitter(),
-        context: self,
-        logger: console
-      }
-    }
-    this.logger = options.logger || console;
-    this.eventEmitter = options.eventEmitter || new EventEmitter();
-    this.context = options.context;
-    this.eventHandlers = new Map<string, TChainEventHandler[]>();
+    const self = this;
+    const chainEventEmitterOptions: ChainEventEmitterOptions = Object.assign({
+      eventEmitter: new EventEmitter(),
+      context: self,
+      logger: console
+    }, options);
+    this.logger = chainEventEmitterOptions.logger;
+    this.eventEmitter = chainEventEmitterOptions.eventEmitter;
+    this.context = chainEventEmitterOptions.context;
     this.eventHandlerStatus = new Map<string, boolean>();
-    this.eachEventHandlers = [];
+    this.eventHandlers = new Map<string, TChainEventHandler[]>();
+    this.anyEventHandlers = [];
     this.eventErrorHandlers = new Map<string, TChainEventErrorHandler>();
   }
 
@@ -44,7 +42,7 @@ export class ChainEventEmitter {
       this.checkEventHandler(handler);
     });
     if ( event === ANY_EVENT ) {
-      this.eachEventHandlers.push(...eventHandlers);
+      this.anyEventHandlers.push(...eventHandlers);
     } else {
       if ( ! this.eventHandlers.has(event) ) {
         this.eventHandlers.set(event,[]);
@@ -112,7 +110,7 @@ export class ChainEventEmitter {
 
   protected handleEvent(event: string) {
     const self = this;
-    const eventHandlers = [...this.eachEventHandlers, ...(this.eventHandlers.get(event)||[])];
+    const eventHandlers = [...this.anyEventHandlers, ...(this.eventHandlers.get(event)||[])];
     const generator = makeGenerator(eventHandlers);
     return function(data: any) {
       const executor = async () => {
