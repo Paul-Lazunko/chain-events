@@ -89,11 +89,10 @@ export class ChainEventEmitter {
   }
 
   protected getErrorHandler(event: string): TChainEventErrorHandler {
-    if ( this.eventErrorHandlers.has(event) ) {
-      return this.eventErrorHandlers.get(event);
-    } else {
-      return this.eventErrorHandlers.get(ANY_EVENT);
+    if ( ! this.eventErrorHandlers.has(event) ) {
+      event = ANY_EVENT
     }
+    return this.eventErrorHandlers.get(event);
   }
 
   protected checkEventName(event: string) {
@@ -123,7 +122,6 @@ export class ChainEventEmitter {
         try {
           const eventErrorHandler: TChainEventErrorHandler = self.getErrorHandler(event);
           if ( !eventErrorHandler ) {
-            self.logger.error(error)
             throw new ChainEventEmitterError(errors.errorHandlerIsAbsent(event))
           }
           await eventErrorHandler(error, data, event)
