@@ -96,7 +96,7 @@ export class ChainEventEmitter {
   }
 
   protected checkEventName(event: string) {
-    if ( typeof event !== 'string' || !event ) {
+    if ( typeof event !== 'string' || !event.replace(/\s/g, '') ) {
       throw new ChainEventEmitterEventNameError();
     }
   }
