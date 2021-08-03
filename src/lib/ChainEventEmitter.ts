@@ -2,9 +2,13 @@ import { EventEmitter } from 'events';
 
 import { ANY_EVENT, errors } from '../constants';
 import { makeGenerator } from '../helpers';
-import {ChainEventEmitterError, ChainEventEmitterEventHandlerError, ChainEventEmitterEventNameError} from '../errors';
 import {
-  ChainEventEmitterOptions,
+  ChainEventEmitterError,
+  ChainEventEmitterEventHandlerError,
+  ChainEventEmitterEventNameError
+} from '../errors';
+import {
+  ChainEventEmitterOptions, EventConfiguration,
   Logger,
   TChainEventErrorHandler,
   TChainEventHandler
@@ -15,10 +19,7 @@ export class ChainEventEmitter {
   private readonly context: any;
   private logger: Logger
   private eventEmitter: EventEmitter;
-  private eventHandlers: Map<string, TChainEventHandler[]>;
-  private eventHandlerStatus: Map<string, boolean>;
-  private eventErrorHandlers: Map<string, TChainEventErrorHandler>;
-  private anyEventHandlers: TChainEventHandler[];
+  private events: Map<string, EventConfiguration>;
 
   constructor(options?: ChainEventEmitterOptions) {
     const self = this;
@@ -30,10 +31,7 @@ export class ChainEventEmitter {
     this.logger = chainEventEmitterOptions.logger;
     this.eventEmitter = chainEventEmitterOptions.eventEmitter;
     this.context = chainEventEmitterOptions.context;
-    this.eventHandlerStatus = new Map<string, boolean>();
-    this.eventHandlers = new Map<string, TChainEventHandler[]>();
-    this.anyEventHandlers = [];
-    this.eventErrorHandlers = new Map<string, TChainEventErrorHandler>();
+    this.events = new Map<string, EventConfiguration>();
   }
 
   public on(event: string, ...eventHandlers: TChainEventHandler[]): void {
@@ -41,62 +39,67 @@ export class ChainEventEmitter {
     eventHandlers.forEach((handler: TChainEventHandler|TChainEventErrorHandler) => {
       this.checkEventHandler(handler);
     });
-    if ( event === ANY_EVENT ) {
-      this.anyEventHandlers.push(...eventHandlers);
-    } else {
-      if ( ! this.eventHandlers.has(event) ) {
-        this.eventHandlers.set(event,[]);
-      }
-      this.eventHandlers.get(event).push(...eventHandlers);
+    if ( !this.events.has(event) ) {
+      this.events.set(event, {
+        status: true,
+        handlers: [],
+      })
     }
+    this.events.get(event).handlers.push(...eventHandlers);
     this.eventEmitter.removeAllListeners(event);
-    if ( !this.eventHandlerStatus.has(event) ) {
-      this.eventHandlerStatus.set(event, true);
-    }
     this.eventEmitter.on(event, this.handleEvent(event));
   }
 
-  public onError(event: string, handler: TChainEventErrorHandler): void {
+  public onError(event: string, errorHandler: TChainEventErrorHandler): void {
     this.checkEventName(event);
-    this.checkEventHandler(handler);
-    this.eventErrorHandlers.set(event, handler);
+    this.checkEventHandler(errorHandler);
+    if ( !this.events.has(event) ) {
+      this.events.set(event, {
+        status: true,
+        handlers:[],
+      });
+    }
+    this.events.get(event).errorHandler = errorHandler;
   }
 
   public off(event: string): void {
     this.checkEventName(event);
-    if ( this.eventHandlers.has(event) ) {
-      this.eventHandlers.delete(event);
-      this.eventHandlerStatus.delete(event);
+    if ( this.events.has(event) ) {
+      this.events.delete(event);
       this.eventEmitter.removeAllListeners(event);
     }
   }
 
   public disable(event: string) {
-    if ( this.eventHandlerStatus.has(event) ) {
-      this.eventHandlerStatus.set(event, false);
+    this.checkEventName(event);
+    if ( this.events.has(event) ) {
+      this.events.get(event).status = false;
     }
   }
 
   public enable(event: string) {
-    if ( this.eventHandlerStatus.has(event) ) {
-      this.eventHandlerStatus.set(event, true);
+    this.checkEventName(event);
+    if ( this.events.has(event) ) {
+      this.events.get(event).status = true;
     }
   }
 
   emit(event: string, data: any): void {
     this.checkEventName(event);
-    this.eventEmitter.emit(event, data)
+    if ( event !== ANY_EVENT ) {
+      this.eventEmitter.emit(event, data)
+    }
   }
 
   protected getErrorHandler(event: string): TChainEventErrorHandler {
-    if ( ! this.eventErrorHandlers.has(event) ) {
+    if ( ! this.events.has(event) ) {
       event = ANY_EVENT
     }
-    return this.eventErrorHandlers.get(event);
+    return this.events.get(event).errorHandler;
   }
 
   protected checkEventName(event: string) {
-    if ( typeof event !== 'string' || !event.replace(/\s/g, '') ) {
+    if ( typeof event !== 'string' || !event.trim() ) {
       throw new ChainEventEmitterEventNameError();
     }
   }
@@ -109,7 +112,9 @@ export class ChainEventEmitter {
 
   protected handleEvent(event: string) {
     const self = this;
-    const eventHandlers = [...this.anyEventHandlers, ...(this.eventHandlers.get(event)||[])];
+    const anyEventHandlers = this.events.has(ANY_EVENT) ? this.events.get(ANY_EVENT).handlers : [];
+    const eventOwnHandlers = this.events.has(event) ? this.events.get(event).handlers : [];
+    const eventHandlers = [...anyEventHandlers, ...eventOwnHandlers];
     const generator = makeGenerator(eventHandlers);
     return function(data: any) {
       const executor = async () => {
@@ -136,7 +141,7 @@ export class ChainEventEmitter {
       const next = () => {
         executor().catch(errorHandler)
       };
-      const isEventEnabled: boolean = self.eventHandlerStatus.get(event);
+      const isEventEnabled: boolean = self.events.has(event) && self.events.get(event).status;
       if ( isEventEnabled ) {
         next();
       }
