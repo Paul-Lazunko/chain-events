@@ -55,12 +55,12 @@ const chainEventEmitter = new ChainEventEmitter();
 
 chainEventEmitter.on('someEvent', async (data, event, next) => {
   // do something with data
-  next();
+  await next();
 });
 
 chainEventEmitter.on('someEvent', async (data, event, next) => {
   // do something else with data
-  next();
+  await next();
 });
 
 ```
@@ -78,19 +78,19 @@ const chainEventEmitter = new ChainEventEmitter();
 chainEventEmitter.on(ANY_EVENT, async (data, event, next) => {
   // do something with data
   console.log('Any event first handler fired')
-  next();
+  await next();
 });
 
 
 chainEventEmitter.on(ANY_EVENT, async (data, event, next) => {
   // do something with data
   console.log('Any event second handler fired')
-  next();
+  await next();
 });
 
 chainEventEmitter.on('someEvent', async (data, event, next) => {
   // do something else with data
-  next();
+  await next();
 });
 
 ```
