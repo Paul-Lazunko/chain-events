@@ -29,7 +29,7 @@ export class ChainEventEmitter<Events extends EventMap = EventMap> {
       logger: console
     }, options);
     this.logger = chainEventEmitterOptions.logger;
-    // this.eventEmitter = chainEventEmitterOptions.eventEmitter as new TypedEmitter<Events>;
+    this.eventEmitter = chainEventEmitterOptions.eventEmitter as TypedEmitter<Events>;
     this.context = chainEventEmitterOptions.context;
     this.events = new Map();
   }
