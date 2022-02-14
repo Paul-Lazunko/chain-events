@@ -19,7 +19,7 @@ export class ChainEventEmitter<Events extends EventMap = EventMap> {
   private readonly context: any;
   private logger: Logger
   private eventEmitter: TypedEmitter<Events>;
-  private events: Map<keyof Events, EventConfiguration>;
+  private events: Map<keyof Events, EventConfiguration<Events, keyof Events>>;
 
   constructor(options?: ChainEventEmitterOptions) {
     const self = this;
@@ -31,7 +31,7 @@ export class ChainEventEmitter<Events extends EventMap = EventMap> {
     this.logger = chainEventEmitterOptions.logger;
     // this.eventEmitter = chainEventEmitterOptions.eventEmitter as new TypedEmitter<Events>;
     this.context = chainEventEmitterOptions.context;
-    this.events = new Map<string, EventConfiguration>();
+    this.events = new Map();
   }
 
   public on<E extends keyof Events>(event: E, ...eventHandlers: TChainEventHandler<Events, E>[]): void {
