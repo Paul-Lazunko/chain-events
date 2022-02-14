@@ -1,2 +1,4 @@
-export type TChainEventHandler = (data: any, event: string, next: Function) => void;
-export type TChainEventErrorHandler = (error: Error, data: any, event: string) => void;
+import { EventMap } from 'typed-emitter';
+
+export type TChainEventHandler<Events extends EventMap, E extends keyof Events> = (data: Parameters<Events[E]>, event: E, next: Function) => void;
+export type TChainEventErrorHandler<Events extends EventMap, E extends keyof Events> = (error: Error, data: Events[E], event: E) => void;

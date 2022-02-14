@@ -41,5 +41,8 @@
     "hooks": {
       "pre-commit": "npm run eslint"
     }
+  },
+  "dependencies": {
+    "typed-emitter": "^2.1.0"
   }
 }
