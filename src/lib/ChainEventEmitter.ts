@@ -19,7 +19,7 @@ export class ChainEventEmitter<Events extends EventMap = EventMap> {
   private readonly context: any;
   private logger: Logger
   private eventEmitter: TypedEmitter<Events>;
-  private events: Map<keyof Events, EventConfiguration<Events, keyof Events>>;
+  private events: Map<keyof Events | typeof ANY_EVENT, EventConfiguration<Events, keyof Events>>;
 
   constructor(options?: ChainEventEmitterOptions) {
     const self = this;
@@ -46,7 +46,7 @@ export class ChainEventEmitter<Events extends EventMap = EventMap> {
     this.eventEmitter.on(event, this.handleEvent(event));
   }
 
-  public onError<E extends keyof Events>(event: E, errorHandler: TChainEventErrorHandler<Events, E>): void {
+  public onError<E extends keyof Events | typeof ANY_EVENT>(event: E, errorHandler: TChainEventErrorHandler<Events, E>): void {
     if ( !this.events.has(event) ) {
       this.events.set(event, {
         status: true,
@@ -81,7 +81,10 @@ export class ChainEventEmitter<Events extends EventMap = EventMap> {
     }
   }
 
-  protected getErrorHandler<E extends keyof Events>(event: E): TChainEventErrorHandler<Events, E> {
+  protected getErrorHandler<E extends keyof Events>(event: E | typeof ANY_EVENT): TChainEventErrorHandler<Events, E> {
+    if ( !this.events.has(event) || !this.events.get(event).errorHandler ) {
+      event = ANY_EVENT
+    }
     return this.events.get(event).errorHandler;
   }
 
