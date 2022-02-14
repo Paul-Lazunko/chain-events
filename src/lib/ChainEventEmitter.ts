@@ -8,7 +8,8 @@ import {
 
 } from '../errors';
 import {
-  ChainEventEmitterOptions, EventConfiguration,
+  ChainEventEmitterOptions,
+  EventConfiguration,
   Logger,
   TChainEventErrorHandler,
   TChainEventHandler
@@ -85,7 +86,7 @@ export class ChainEventEmitter<Events extends EventMap = EventMap> {
     if ( !this.events.has(event) || !this.events.get(event).errorHandler ) {
       event = ANY_EVENT
     }
-    return this.events.get(event).errorHandler;
+    return this.events.get(event)?.errorHandler;
   }
 
   protected handleEvent<E extends keyof Events>(event: E) {
@@ -94,7 +95,7 @@ export class ChainEventEmitter<Events extends EventMap = EventMap> {
     const eventOwnHandlers = this.events.has(event) ? this.events.get(event).handlers : [];
     const eventHandlers = [...anyEventHandlers, ...eventOwnHandlers];
     const generator = makeGenerator(eventHandlers);
-    return function(data: any) {
+    return function(data: any): void | Promise<void> {
       const executor = async () => {
         const eventHandler = generator.next();
         if ( eventHandler.value ) {
@@ -116,12 +117,12 @@ export class ChainEventEmitter<Events extends EventMap = EventMap> {
           }
         }
       }
-      const next = () => {
+      const next = (): Promise<void> => {
         return executor().catch(errorHandler)
       };
       const isEventEnabled: boolean = self.events.has(event) && self.events.get(event).status;
       if ( isEventEnabled ) {
-        next();
+        return next();
       }
     } as Events[E];
   }
