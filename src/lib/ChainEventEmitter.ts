@@ -114,7 +114,7 @@ export class ChainEventEmitter<Events extends EventMap = EventMap> {
         }
       }
       const next = () => {
-        executor().catch(errorHandler)
+        return executor().catch(errorHandler)
       };
       const isEventEnabled: boolean = self.events.has(event) && self.events.get(event).status;
       if ( isEventEnabled ) {
