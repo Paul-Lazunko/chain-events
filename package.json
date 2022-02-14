@@ -1,6 +1,6 @@
 {
   "name": "chain-events",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "The controlled events callbacks for Node.js EventEmitter",
   "main": "dist/index.js",
   "types": "src/types.d.ts",
